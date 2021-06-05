@@ -5,7 +5,7 @@
 #include <thread>
 
 const unsigned int width = 1500, height = 1000;
-unsigned int maxIterations = 120;//127; //can be changed, but this value is nearly perfect so don't touch it or the image will become ugly
+unsigned int maxIterations = 127;//127; //can be changed, but this value is nearly perfect so don't touch it or the image will become ugly
 long double zoom = 0.004;
 sf::Vector2<long double> offset(-0.7, 0.0);
 
@@ -119,19 +119,16 @@ void updateImageSlice(int miny, int maxy)
 void generateColors(const unsigned int maxIterations)
 {
     colors.resize(maxIterations + 2);
-    for (unsigned int i = 0; i <= maxIterations; i++)
+    for (unsigned int i = 0; i < maxIterations; i++)
     {
-        double quotient = (double)i / (double)maxIterations;
-        double color = quotient;
-        if (quotient > 1.0)
-            color = 1.0;
-        else if (quotient < 0.0)
-            color = 0.0;
-        color = map(color, 0.0, 1.0, 0.0, 255.0);
-        if (quotient > 0.5)
-            colors[i] = sf::Color(color, 255, color);
-        else
-            colors[i] = sf::Color(0, color, 0);
+        float t = float(i) / maxIterations;
+        float r = 9.0 * (1.0 - t) * t * t * t;
+        float g = 15.0 * (1.0 - t) * (1.0 - t) * t * t;
+        float b = 8.5 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t;
+        r = map(r, -1.0f, 1.0f, 0.0f, 255.f);
+        g = map(g, -1.0f, 1.0f, 0.0f, 255.f);
+        b = map(b, -1.0f, 1.0f, 0.0f, 255.f);
+        colors[i] = sf::Color(r, g, b);
     }
     colors[maxIterations + 1] = sf::Color::Black;
 }
