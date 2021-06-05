@@ -49,10 +49,6 @@ int main()
             }
             if (e.type == sf::Event::MouseButtonPressed)
             {
-                if (e.mouseButton.button == sf::Mouse::Left)
-                {
-                    offset = ((sf::Vector2<long double>(sf::Mouse::getPosition(wnd)) + sf::Vector2<long double>(width * (2.0 / 3.0), height / 2)) * zoom);
-                }
                 break;
             }
             if (e.type == sf::Event::KeyPressed)
@@ -68,20 +64,11 @@ int main()
                     offset.x -= 140 * zoom;
                 if (e.key.code == sf::Keyboard::D)
                     offset.x += 140 * zoom;
-                //std::cout << offset.x << " " << offset.y << "\n";
 
                 if (e.key.code == sf::Keyboard::Up)
                     zoom *= 0.5;
                 if (e.key.code == sf::Keyboard::Down)
                     zoom /= 0.5;
-
-                if (e.key.code == sf::Keyboard::I)
-                {
-                    std::cout << "Max Iterations: ";
-                    std::cin >> maxIterations;
-                    std::cout << "\n";
-                    generateColors(maxIterations);
-                }
                 break;
             }
         }
