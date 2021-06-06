@@ -1,18 +1,20 @@
 #include "SFML/Graphics.hpp"
 #include "SFML/Window.hpp"
 #include <complex>
-#include <iostream>
 #include <thread>
+#include <sstream>
+#include <iostream>
 
 const unsigned int width = 1500, height = 1000;
-unsigned int maxIterations = 127;//127; //can be changed, but this value is nearly perfect so don't touch it or the image will become ugly
-long double zoom = 0.004;
+unsigned int maxIterations = 124;//127; //can be changed, but this value is nearly perfect so don't touch it or the image will become ugly
+long double zoom = 1.0;//0.004;
 sf::Vector2<long double> offset(-0.7, 0.0);
 
-sf::VertexArray vertices;
 sf::Image image;
 sf::Texture texture;
 sf::Sprite sprite;
+sf::Text text;
+sf::Font font;
 
 std::vector<sf::Color> colors;
 
@@ -23,6 +25,15 @@ void updateImageSlice(int miny, int maxy);
 
 
 template<typename T>
+std::string to_string(const T val, const int n = 6)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << val;
+    return out.str();
+}
+
+template<typename T>
 T map(T val, T min1, T max1, T min2, T max2)
 {
     return min2 + ((val - min1) * (max2 - min2)) / (max1 - min1);
@@ -30,11 +41,13 @@ T map(T val, T min1, T max1, T min2, T max2)
 
 int main()
 {
-    std::cout << "Supported number of threads: " << std::thread::hardware_concurrency() << "\n";
+    std::cout << std::numeric_limits<long double>::digits10;
     sf::RenderWindow wnd(sf::VideoMode(width, height), "Mandelbrot");
-    vertices.setPrimitiveType(sf::PrimitiveType::Points);
-    vertices.resize(width * height);
     image.create(width, height);
+    font.loadFromFile("arial.ttf");
+    text.setFont(font);
+    text.setCharacterSize(18);
+    text.setPosition(10, 10);
     generateColors(maxIterations);
     while (wnd.isOpen())
     {
@@ -42,6 +55,7 @@ int main()
         sf::Event e;
         while (wnd.waitEvent(e))
         {
+            shouldCalculate = true;
             if (e.type == sf::Event::Closed)
             {
                 wnd.close();
@@ -69,13 +83,32 @@ int main()
                     zoom *= 0.5;
                 if (e.key.code == sf::Keyboard::Down)
                     zoom /= 0.5;
+                if (e.key.code == sf::Keyboard::Left)
+                {
+                    if (maxIterations > 50)
+                    {
+                        maxIterations -= 50;
+                        generateColors(maxIterations);
+                        text.setString("Calculated in 0 seconds\nMax Iterations: " + std::to_string(maxIterations) + "\nZoom: " + to_string(zoom, 15));
+                    }
+                    shouldCalculate = false;
+                }
+                if (e.key.code == sf::Keyboard::Right)
+                {
+                    if (maxIterations < 100000)
+                    {
+                        maxIterations += 50;
+                        generateColors(maxIterations);
+                        text.setString("Calculated in 0 seconds\nMax Iterations: " + std::to_string(maxIterations) + "\nZoom: " + to_string(zoom, 15));
+                    }
+                    shouldCalculate = false;
+                }
                 break;
             }
         }
 
         if (shouldCalculate)
         {
-            std::cout << "Beginning to calculate\n";
             sf::Clock timer;
             const unsigned int step = height / 16;//std::thread::hardware_concurrency();
             std::vector<std::thread> threads;
@@ -85,17 +118,18 @@ int main()
             }
             for (auto& thread : threads)
                 thread.join();
-            std::cout << "Finished calculating in " + std::to_string(timer.getElapsedTime().asSeconds()) + " seconds\n";
 
+            text.setString("Calculated in " + std::to_string(timer.getElapsedTime().asSeconds()) + " seconds\nMax Iterations: " + std::to_string(maxIterations) + "\nZoom: " + to_string(zoom, 15));
             texture.loadFromImage(image);
             sprite.setTexture(texture);
-
-            wnd.clear();
-
-            wnd.draw(sprite);
-
-            wnd.display();
         }
+
+        wnd.clear();
+
+        wnd.draw(sprite);
+        wnd.draw(text);
+
+        wnd.display();
     }
 
 
@@ -136,7 +170,7 @@ void generateColors(const unsigned int maxIterations)
 unsigned int mandelbrot(std::complex<long double> i, const unsigned int maxIterations)
 {
     unsigned int count = 0;
-    std::complex j = i;
+    std::complex<long double> j = i;
     while (j.real() * j.real() + j.imag() * j.imag() < 4.0 && count < maxIterations)
     {
         j = j * j + i;
