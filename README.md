@@ -1,5 +1,5 @@
 # MandelbrotSFML
-A visulization of the mandelbrot set in c++ using SFML
+A visulization of the mandelbrot fractal in c++ using SFML
 
 # Usage
 Either make your own Visual Studio project and run it (in Release mode for performance), or simply run the MandelbrotSFML.exe in the Release folder.
